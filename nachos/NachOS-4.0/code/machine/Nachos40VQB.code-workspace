@@ -1,0 +1,18 @@
+{
+    "folders": [
+        {
+            "path": "../../../../../Downloads/nachos_4.0-main"
+        },
+        {
+            "path": "../../.."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "iostream": "cpp",
+            "syscall.h": "c",
+            "*.tcc": "c",
+            "ostream": "c"
+        }
+    }
+}
