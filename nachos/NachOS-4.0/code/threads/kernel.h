@@ -61,7 +61,7 @@ public:
 
   int hostName; // machine identifier
   void PrintBuffer(char *buffer, int size);
-  int Open(char *filename);
+  int Open(char *filename, int type);
   int Close(int id);
   void PrintNumber(int number);
   int Seek(int pos, int id);

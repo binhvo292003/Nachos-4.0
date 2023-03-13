@@ -197,6 +197,24 @@ PrintNumber:
 	.end PrintNumber
 
 
+/*---	socket	---*/
+	.globl SocketTCP
+	.ent	SocketTCP
+SocketTCP:
+	addiu $2,$0,SC_SocketTCP
+	syscall
+	j	$31
+	.end SocketTCP
+
+/*---	connect	---*/
+	.globl Connect
+	.ent	Connect
+Connect:
+	addiu $2,$0,SC_Connect
+	syscall
+	j	$31
+	.end Connect
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

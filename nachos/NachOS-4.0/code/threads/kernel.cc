@@ -267,9 +267,9 @@ void Kernel::PrintBuffer(char *buffer, int size)
     }
 }
 
-int Kernel::Open(char *filename)
+int Kernel::Open(char *filename, int type)
 {
-    if (filename == NULL)
+    if (filename == NULL || type != 0 || type != 1)
     {
         return -1;
     }
@@ -278,6 +278,7 @@ int Kernel::Open(char *filename)
     {
         if (fileSystem->openTable[i] != NULL && strcmp(fileSystem->openTable[i]->filename, filename) == 0)
         {
+            fileSystem->openTable[i]->type = type;
             return i;
         }
     }
@@ -301,6 +302,7 @@ int Kernel::Open(char *filename)
         return -1;
     }
     fileSystem->openTable[availableSlot]->filename = new char[strlen(filename) + 1];
+    fileSystem->openTable[availableSlot]->type = type;
     strcpy(fileSystem->openTable[availableSlot]->filename, filename);
     return availableSlot;
 }

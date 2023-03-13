@@ -192,7 +192,7 @@ void SlovingSC_Open()
 	int virtAddr = kernel->machine->ReadRegister(4); // Lay dia chi cua tham so name tu thanh ghi so 4
 	int type = kernel->machine->ReadRegister(5);	 // Lay tham so type tu thanh ghi so 5
 	char *filename = User2System(virtAddr, MaxFileLength);
-	int fileId = kernel->Open(filename);
+	int fileId = kernel->Open(filename, type);
 
 	if (fileId == -1)
 	{
@@ -226,7 +226,7 @@ void SlovingSC_Close()
 		kernel->machine->WriteRegister(2, -1);
 	}
 
-	cout<<endl;
+	cout << endl;
 	for (int i = 0; i < 20; i++)
 	{
 		if (kernel->fileSystem->openTable[i] != NULL)
@@ -288,6 +288,15 @@ void SlovingSC_Write()
 	if (kernel->fileSystem->openTable[id] == NULL)
 	{
 		printf("\nFile not exist");
+		kernel->machine->WriteRegister(2, -1);
+		ProgramCounter();
+		return;
+	}
+
+	// check file is only read
+	if (kernel->fileSystem->openTable[id]->type == 0)
+	{
+		printf("\nFile only read");
 		kernel->machine->WriteRegister(2, -1);
 		ProgramCounter();
 		return;
@@ -371,6 +380,14 @@ void SlovingSC_Remove()
 	return;
 }
 
+void SlovingSC_SocketTCP()
+{
+	cout << "\nstatus catched\n";
+
+	ProgramCounter();
+	return;
+}
+
 void ExceptionHandler(ExceptionType which)
 {
 	int type = kernel->machine->ReadRegister(2);
@@ -414,6 +431,9 @@ void ExceptionHandler(ExceptionType which)
 
 		case SC_Remove:
 			return SlovingSC_Remove();
+
+		case SC_SocketTCP:
+			return SlovingSC_SocketTCP();
 
 		default:
 			cerr << "Unexpected system callinggggggggggggg " << type << "\n";

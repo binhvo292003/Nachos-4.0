@@ -31,6 +31,7 @@ class OpenFile
 {
 public:
 	char *filename;
+	int type;
 	OpenFile(int f)
 	{
 		file = f;
@@ -91,6 +92,7 @@ class OpenFile
 {
 public:
 	char *filename;
+	int type;
 	OpenFile(int sector); // Open a file whose header is located
 						  // at "sector" on the disk
 	~OpenFile();		  // Close the file

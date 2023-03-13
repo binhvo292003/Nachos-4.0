@@ -43,9 +43,11 @@
 class FileSystem
 {
 public:
-
 	OpenFile **openTable;
 	int index;
+
+	OpenFile **SocketTable;
+
 	FileSystem()
 	{
 		openTable = new OpenFile *[20];
@@ -60,6 +62,13 @@ public:
 		openTable[index++] = this->Open("stdout");
 		openTable[0]->filename = "stdin";
 		openTable[1]->filename = "stdout";
+
+		SocketTable = new OpenFile *[20];
+		index =0 ;
+		for (int i = 0; i < 20; i++)
+		{
+			SocketTable[i] = NULL;
+		}
 	}
 
 	~FileSystem()
@@ -89,6 +98,7 @@ public:
 			return NULL;
 		return new OpenFile(fileDescriptor);
 	}
+
 
 	bool Remove(char *name) { return Unlink(name) == 0; }
 };

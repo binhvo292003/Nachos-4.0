@@ -35,10 +35,15 @@
 #define SC_ThreadExit   14
 #define SC_ThreadJoin   15
 
-
 #define SC_Add		42
 #define SC_PrintString 43
 #define SC_PrintNumber 44
+
+
+#define SC_SocketTCP 60
+#define SC_Connect 61
+
+
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -179,6 +184,12 @@ void ThreadExit(int ExitCode);
 void PrintString(char *buffer);
 
 void PrintNumber(int number);
+
+/*--------  socket  --------*/
+void SocketTCP();
+
+int Connect(int socketid, char *ip, int port);
+
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */
