@@ -196,6 +196,24 @@ PrintNumber:
 	j	$31
 	.end PrintNumber
 
+/* read string */
+	.globl ReadString
+	.ent	ReadString
+ReadString:
+	addiu $2,$0,SC_ReadString
+	syscall
+	j	$31
+	.end ReadString
+
+/* read num */
+	.globl ReadNum
+	.ent	ReadNum
+ReadNum:
+	addiu $2,$0,SC_ReadNum
+	syscall
+	j	$31
+	.end ReadNum
+
 
 /*---	socket	---*/
 	.globl SocketTCP

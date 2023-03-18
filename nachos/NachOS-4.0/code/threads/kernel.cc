@@ -269,42 +269,46 @@ void Kernel::PrintBuffer(char *buffer, int size)
 
 int Kernel::Open(char *filename, int type)
 {
-    if (filename == NULL || type != 0 || type != 1)
+    if (filename == NULL)
     {
         return -1;
     }
+    if (type == 0 || type == 1)
+    {
 
-    for (int i = 0; i < 20; ++i)
-    {
-        if (fileSystem->openTable[i] != NULL && strcmp(fileSystem->openTable[i]->filename, filename) == 0)
+        for (int i = 0; i < 20; ++i)
         {
-            fileSystem->openTable[i]->type = type;
-            return i;
+            if (fileSystem->openTable[i] != NULL && strcmp(fileSystem->openTable[i]->filename, filename) == 0)
+            {
+                fileSystem->openTable[i]->type = type;
+                return i;
+            }
         }
-    }
 
-    int availableSlot = -1;
-    for (int i = 2; i < 20; ++i)
-    {
-        if (fileSystem->openTable[i] == NULL)
+        int availableSlot = -1;
+        for (int i = 2; i < 20; ++i)
         {
-            availableSlot = i;
-            break;
+            if (fileSystem->openTable[i] == NULL)
+            {
+                availableSlot = i;
+                break;
+            }
         }
+        if (availableSlot == -1)
+        {
+            return -1;
+        }
+        fileSystem->openTable[availableSlot] = fileSystem->Open(filename);
+        if (fileSystem->openTable[availableSlot] == NULL)
+        {
+            return -1;
+        }
+        fileSystem->openTable[availableSlot]->filename = new char[strlen(filename) + 1];
+        fileSystem->openTable[availableSlot]->type = type;
+        strcpy(fileSystem->openTable[availableSlot]->filename, filename);
+        return availableSlot;
     }
-    if (availableSlot == -1)
-    {
-        return -1;
-    }
-    fileSystem->openTable[availableSlot] = fileSystem->Open(filename);
-    if (fileSystem->openTable[availableSlot] == NULL)
-    {
-        return -1;
-    }
-    fileSystem->openTable[availableSlot]->filename = new char[strlen(filename) + 1];
-    fileSystem->openTable[availableSlot]->type = type;
-    strcpy(fileSystem->openTable[availableSlot]->filename, filename);
-    return availableSlot;
+    return -1;
 }
 
 int Kernel::Close(int id)
@@ -379,5 +383,63 @@ int Kernel::Seek(int pos, int id)
         // Neu hop le thi tra ve vi tri di chuyen thuc su trong file
         int t = kernel->fileSystem->openTable[id]->Seek(pos);
         return pos;
+    }
+}
+
+char *Kernel::ReadString(int writeRegister)
+{
+    char *buffer = new char[256];
+    int i = 0;
+
+    do
+    {
+        buffer[i] = synchConsoleIn->GetChar();
+        i++;
+    } while (buffer[i - 1] != '\n');
+
+    buffer[i] = '\0';
+    return buffer;
+}
+
+void Kernel::ReadNum(int writeRegister)
+{
+    char buffer[10];
+    int size = 0;
+    int num = 0;
+    bool isNum = true;
+    do
+    {
+        buffer[size] = synchConsoleIn->GetChar();
+
+        //  check int in buffer[i]
+        if (buffer[size] < 48 || buffer[size] > 57)
+        {
+            // check negative num
+            if (size == 0 && buffer[size] == '-')
+            {
+                isNum = true;
+            }
+            else if (buffer[size] == '\n')
+            {
+                isNum = true;
+            }
+            else // return 0 if have character
+            {
+                isNum = false;
+                machine->WriteRegister(writeRegister, 0); // Return 0 if it's not an int
+                break;
+            }
+        }
+
+        size++;
+    } while (buffer[size - 1] != '\n');
+
+    if (isNum)
+    {
+        buffer[size - 1] = '\0';
+
+        num = atoi(buffer);
+
+        machine->WriteRegister(writeRegister, num);
     }
 }

@@ -38,7 +38,8 @@
 #define SC_Add		42
 #define SC_PrintString 43
 #define SC_PrintNumber 44
-
+#define SC_ReadString 45
+#define SC_ReadNum 46
 
 #define SC_SocketTCP 60
 #define SC_Connect 61
@@ -184,6 +185,10 @@ void ThreadExit(int ExitCode);
 void PrintString(char *buffer);
 
 void PrintNumber(int number);
+
+void ReadString(char*buffer, int length);
+
+int ReadNum();
 
 /*--------  socket  --------*/
 void SocketTCP();

@@ -65,7 +65,12 @@ public:
   int Close(int id);
   void PrintNumber(int number);
   int Seek(int pos, int id);
-
+  char* ReadString(int size);
+  void ReadNum(int writeRegister);
+  // char GetChar(){
+  //   synchConsoleIn->
+  //   return synchConsoleIn->GetChar();
+  // }
 private:
   bool randomSlice;   // enable pseudo-random time slicing
   bool debugUserProg; // single step user program

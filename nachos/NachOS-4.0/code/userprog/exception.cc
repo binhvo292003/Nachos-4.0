@@ -146,11 +146,8 @@ void SlovingSC_Create()
 {
 	int virtAddr;
 	char *filename;
-	DEBUG('a', "\n SC_Create call ...");
-	DEBUG('a', "\n Reading virtual address of filename");
 	// Lấy tham số tên tập tin từ thanh ghi r4
 	virtAddr = kernel->machine->ReadRegister(4);
-	DEBUG('a', "\n Reading filename.");
 	// MaxFileLength là = 32
 	filename = User2System(virtAddr, MaxFileLength + 1);
 	if (filename == NULL)
@@ -163,13 +160,6 @@ void SlovingSC_Create()
 		return;
 	}
 	DEBUG('a', "\n Finish reading filename.");
-	// DEBUG('a',"\n File name : '"<<filename<<"'");
-	//  Create file with size = 0
-	//  Dùng đối tượng fileSystem của lớp OpenFile để tạo file,
-	//  việc tạo file này là sử dụng các thủ tục tạo file của hệ điều
-	//  hành Linux, chúng ta không quản ly trực tiếp các block trên
-	//  đĩa cứng cấp phát cho file, việc quản ly các block của file
-	//  trên ổ đĩa là một đồ án khác
 	if (!kernel->fileSystem->Create(filename, 0))
 	{
 		printf("\n Error create file '%s'", filename);
@@ -226,14 +216,14 @@ void SlovingSC_Close()
 		kernel->machine->WriteRegister(2, -1);
 	}
 
-	cout << endl;
-	for (int i = 0; i < 20; i++)
-	{
-		if (kernel->fileSystem->openTable[i] != NULL)
-		{
-			cout << "OpenFileID: " << i << "\tName: " << kernel->fileSystem->openTable[i]->filename << endl;
-		}
-	}
+	// cout << endl;
+	// for (int i = 0; i < 20; i++)
+	// {
+	// 	if (kernel->fileSystem->openTable[i] != NULL)
+	// 	{
+	// 		cout << "OpenFileID: " << i << "\tName: " << kernel->fileSystem->openTable[i]->filename << endl;
+	// 	}
+	// }
 
 	ProgramCounter();
 	return;
@@ -241,6 +231,7 @@ void SlovingSC_Close()
 
 void SlovingSC_Read()
 {
+	//	int Read(char *buffer, int size, OpenFileId id);
 	int virtAddr = kernel->machine->ReadRegister(4);
 	int charCount = kernel->machine->ReadRegister(5);
 	int id = kernel->machine->ReadRegister(6);
@@ -272,6 +263,7 @@ void SlovingSC_Read()
 
 void SlovingSC_Write()
 {
+	// int Write(char *buffer, int size, OpenFileId id);
 	int virtAddr = kernel->machine->ReadRegister(4);
 	int charCount = kernel->machine->ReadRegister(5);
 	int id = kernel->machine->ReadRegister(6);
@@ -372,11 +364,42 @@ void SlovingSC_Remove()
 
 	// Success to remove file
 	kernel->machine->WriteRegister(2, 0); // return 0 to user program
-	printf("\nFile removed '%s'\n", filename);
+	cout << "\nFile removed " << filename;
 
 	delete filename;
 	ProgramCounter();
 
+	return;
+}
+
+void SlovingSC_ReadNum()
+{
+	int addr = kernel->machine->ReadRegister(4);
+	char *buffer = User2System(addr, 200);
+	kernel->ReadNum(2);
+	delete[] buffer;
+	ProgramCounter();
+	return;
+}
+
+#define MAX_FILE_STRING_LENGTH 255
+void SlovingSC_ReadString()
+{
+	int memBuffer = kernel->machine->ReadRegister(4);
+	int length = kernel->machine->ReadRegister(5);
+
+	if (length > MAX_FILE_STRING_LENGTH)
+	{
+		SysHalt();
+	}
+
+	char *buffer = kernel->ReadString(2);
+	// truyen vao length
+	System2User(memBuffer, MAX_FILE_STRING_LENGTH, buffer);
+
+	delete[] buffer;
+
+	ProgramCounter();
 	return;
 }
 
@@ -434,6 +457,12 @@ void ExceptionHandler(ExceptionType which)
 
 		case SC_SocketTCP:
 			return SlovingSC_SocketTCP();
+
+		case SC_ReadString:
+			return SlovingSC_ReadString();
+
+		case SC_ReadNum:
+			return SlovingSC_ReadNum();
 
 		default:
 			cerr << "Unexpected system callinggggggggggggg " << type << "\n";
