@@ -171,6 +171,7 @@ void SlovingSC_Create()
 	// người dùng thành công
 	delete filename;
 
+	ProgramCounter();
 	return;
 }
 

@@ -9,7 +9,7 @@ int main()
     int i;
     char c;
 
-    PrintString("source file name: ");
+    PrintString("Source file name: ");
     ReadString(source, maxLength);
     PrintString(source);
 
@@ -28,13 +28,13 @@ int main()
             Read(c, 1, sourceFileID); // Doc tung ki tu cua file nguon
             PrintString(c);
         }
-
+        Close(sourceFileID);
     }
-
     else
     {
-        PrintString("\n source file does not exist");
+        PrintString("\nSource file does not exist");
     }
-    Close(sourceFileID);
+
+    PrintString("\n");
     Halt();
 }

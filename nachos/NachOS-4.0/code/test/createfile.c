@@ -2,16 +2,21 @@
 #define maxlen 32
 int main()
 {
-    int num;
+    int fd = -1;
     char filename[256];
 
-    // PrintString("Input length of file: ");
-    // num = ReadNum();
-
     PrintString("Input filename: ");
-    ReadString(filename, num);
+    ReadString(filename, 255);
 
-    Create(filename);
+    fd = Create(filename);
+    if (fd != -1)
+    {
+        PrintString("\nCreate file success!!!");
+    }
+    else
+    {
+        PrintString("\nCreate file fail!!!");
+    }
 
     Halt();
 }
