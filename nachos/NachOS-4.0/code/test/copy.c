@@ -11,19 +11,15 @@ int main()
     int i, length;
     char c;
 
-    PrintString("Source file name: ");
+    PrintString("source file name: ");
     ReadString(source, maxLength);
-    PrintString(source);
-    PrintString("Destination file name: ");
+    PrintString("destination file name: ");
     ReadString(dest, maxLength);
-    PrintString(dest);
-
+   
     sourceFileID = Open(source, 1);
     destFileID = Open(dest, 1);
     if (sourceFileID != -1)
     { // neu file nguon ton tai
-
-        destFileID = Open(dest, 1);
 
         if (destFileID == -1)
         {
@@ -41,19 +37,16 @@ int main()
         {
             Read(c, 1, sourceFileID); // Doc tung ki tu cua file nguon
             Write(c, 1, destFileID);
-            PrintString(c);
         }
-        // Write(c, length, destFileID); // Ghi vao file dich
 
-        PrintString("\nSuccess\n");
+        PrintString("\nsuccess\n");
         Close(destFileID); // Goi ham Close de dong file dich
     }
     else
     {
-        PrintString("\nSource file does not exist");
+        PrintString("\n source file does not exist");
     }
 
     Close(sourceFileID);
-    PrintString("\n");
     Halt();
 }

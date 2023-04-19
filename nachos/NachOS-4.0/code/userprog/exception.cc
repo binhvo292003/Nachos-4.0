@@ -170,7 +170,6 @@ void SlovingSC_Create()
 	kernel->machine->WriteRegister(2, 0); // trả về cho chương trình
 	// người dùng thành công
 	delete filename;
-
 	ProgramCounter();
 	return;
 }
@@ -217,15 +216,6 @@ void SlovingSC_Close()
 		kernel->machine->WriteRegister(2, -1);
 	}
 
-	// cout << endl;
-	// for (int i = 0; i < 20; i++)
-	// {
-	// 	if (kernel->fileSystem->openTable[i] != NULL)
-	// 	{
-	// 		cout << "OpenFileID: " << i << "\tName: " << kernel->fileSystem->openTable[i]->filename << endl;
-	// 	}
-	// }
-
 	ProgramCounter();
 	return;
 }
@@ -245,18 +235,35 @@ void SlovingSC_Read()
 		ProgramCounter();
 		return;
 	}
-	// check file exist
+	// check file/socket exist
 	if (kernel->fileSystem->openTable[id] == NULL)
 	{
-		printf("\nFile not exist");
+		printf("\nFile/Socket not exist");
 		kernel->machine->WriteRegister(2, -1);
 		ProgramCounter();
 		return;
 	}
+	if (kernel->fileSystem->openTable[id]->isSocket != 1) // file
+	{
+		int byteRead = kernel->Read(buf, charCount, id);
+		System2User(virtAddr, byteRead, buf);
+	}
+	else // socket
+	{
+		int socket_desc = kernel->fileSystem->openTable[id]->socket_desc;
+		int byteReceive = kernel->fileSystem->Receive(socket_desc, buf, charCount);
+		if (byteReceive > 0)
+		{
+			//cout << "byte recv: " << byteReceive;
+			kernel->machine->WriteRegister(2, byteReceive);
+			System2User(virtAddr, byteReceive, buf);
+		}
+		else if  (byteReceive == 0)
+			kernel->machine->WriteRegister(2, 0);
+		else
+			kernel->machine->WriteRegister(2, -1);
+	}
 
-	int byteRead = kernel->Read(buf, charCount, id);
-
-	System2User(virtAddr, byteRead, buf);
 	delete[] buf;
 	ProgramCounter();
 	return;
@@ -277,28 +284,46 @@ void SlovingSC_Write()
 		ProgramCounter();
 		return;
 	}
-	// check file exist
+	// check file/socket exist
 	if (kernel->fileSystem->openTable[id] == NULL)
 	{
-		printf("\nFile not exist");
+		printf("\nFile/Socket not exist");
 		kernel->machine->WriteRegister(2, -1);
 		ProgramCounter();
 		return;
 	}
 
-	// check file is only read
-	if (kernel->fileSystem->openTable[id]->type == 0)
+	if (kernel->fileSystem->openTable[id]->isSocket != 1) // file
+	{   
+		// check file is only read
+		if (kernel->fileSystem->openTable[id]->type == 0)
+		{
+			printf("\nFile only read");
+			kernel->machine->WriteRegister(2, -1);
+			ProgramCounter();
+			return;
+		}
+
+		int byteWrite = kernel->fileSystem->openTable[id]->Write(buf, charCount);
+
+		System2User(virtAddr, byteWrite, buf);
+		kernel->machine->WriteRegister(2, byteWrite);
+	}
+	else //socket
 	{
-		printf("\nFile only read");
-		kernel->machine->WriteRegister(2, -1);
-		ProgramCounter();
-		return;
+		int socket_desc = kernel->fileSystem->openTable[id]->socket_desc;
+		if (kernel->fileSystem->openTable[id]->isConnected == 1)
+		{
+			int byteSend = kernel->fileSystem->Send(socket_desc, buf, charCount);
+			if (byteSend > 0)
+				kernel->machine->WriteRegister(2, byteSend);
+			else
+				kernel->machine->WriteRegister(2, -1);
+		}
+		else
+			kernel->machine->WriteRegister(2, 0);
 	}
 
-	int byteWrite = kernel->fileSystem->openTable[id]->Write(buf, charCount);
-
-	System2User(virtAddr, byteWrite, buf);
-	kernel->machine->WriteRegister(2, byteWrite);
 	delete[] buf;
 	ProgramCounter();
 	return;
@@ -406,8 +431,66 @@ void SlovingSC_ReadString()
 
 void SlovingSC_SocketTCP()
 {
-	cout << "\nstatus catched\n";
+	int freeSlot = -1;
+	for (int i = 2; i < 20; i++)
+	{
+		if(kernel->fileSystem->openTable[i] == NULL)
+		{
+			freeSlot = i;
+			break;
+		}
+	}
+	if(freeSlot == -1)
+	{
+		cout << "\nopenTable is full\n";
+		kernel->machine->WriteRegister(2, -1);
+	}
+	else
+	{
+		//cout << "\n creating socket" << endl;
+		kernel->fileSystem->openTable[freeSlot] = new OpenFile(-1);
+		kernel->fileSystem->openTable[freeSlot]->isSocket = 1;
+		kernel->fileSystem->openTable[freeSlot]->socket_desc = kernel->fileSystem->CreateSocket();
+		if (kernel->fileSystem->openTable[freeSlot]->socket_desc != -1)
+			kernel->machine->WriteRegister(2, freeSlot);
+		else
+		{
+			kernel->machine->WriteRegister(2, -1);
+			delete kernel->fileSystem->openTable[freeSlot];
+		}
 
+	}
+
+	ProgramCounter();
+	return;
+}
+
+#define MAX_IP_LENGTH 46 // khum biet nua, tra google
+void SlovingSC_Connect()
+{
+	int socketId = kernel->machine->ReadRegister(4);
+	int ip = kernel->machine->ReadRegister(5);
+	int port = kernel->machine->ReadRegister(6);
+	char *severIp = User2System(ip, MAX_IP_LENGTH);
+
+	if (socketId < 0 || socketId > 19 || socketId == 1 || socketId == 0) // socketId nam ngoai pham vi bang hoac la stdin, stdout
+		kernel->machine->WriteRegister(2, -1);
+	else if (kernel->fileSystem->openTable[socketId] == NULL || kernel->fileSystem->openTable[socketId]->isSocket != 1) 
+		kernel->machine->WriteRegister(2, -1); // khong ton tai hoac khong phai socket
+	else 
+	{
+		int socket_desc = kernel->fileSystem->openTable[socketId]->socket_desc;
+		int state = kernel->fileSystem->Connect(socket_desc, severIp, port);
+		if (state == 0)
+		{
+			kernel->fileSystem->openTable[socketId]->isConnected = 1;
+			kernel->machine->WriteRegister(2, 0);
+		}
+		else
+			kernel->machine->WriteRegister(2, -1);
+	}
+	
+	delete[] severIp;
 	ProgramCounter();
 	return;
 }
@@ -420,59 +503,183 @@ void ExceptionHandler(ExceptionType which)
 
 	switch (which)
 	{
+	//	find in machine
+	case NoException:
+	{
+		kernel->interrupt->setStatus(SystemMode);
+        DEBUG(dbgSys, "\nSwitch to system mode\n");
+        printf("\nSwitch to system mode\n");
+		break;
+	}
+
+	case PageFaultException:
+	{
+		DEBUG(dbgAddr, "No valid translation found\n");
+		printf("\nNo valid translation found\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+
+	case ReadOnlyException:
+	{
+		DEBUG(dbgAddr, "Write attempted to page marked read-only\n");
+		printf("\nWrite attempted to page marked 'read-only'\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+
+	case BusErrorException:
+	{
+		DEBUG(dbgAddr, "Translation resulted in an invalid address\n");
+		printf("Translation resulted in an invalid address\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+	case AddressErrorException:
+	{
+		DEBUG(dbgAddr, "Unaligned reference or one that address space\n");
+		printf("Unaligned reference or one that address space\n");
+		//kernel->interrupt->Halt();
+		
+		ASSERT(FALSE);
+		break;
+	}
+	case OverflowException:
+	{
+		DEBUG(dbgAddr, "Integer overflow in add or sub.\n");
+		printf("Integer overflow in add or sub.\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+	case IllegalInstrException:
+	{
+		DEBUG(dbgAddr, "Unimplemented or reserved instr.\n");
+		printf("Unimplemented or reserved instr.\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+	case NumExceptionTypes:
+	{
+		DEBUG(dbgAddr, "NumExceptionTypes\n");
+		printf("NumExceptionTypes\n");
+		//kernel->interrupt->Halt();
+
+		ASSERT(FALSE);
+		break;
+	}
+	
 	case SyscallException:
 		switch (type)
 		{
 		case SC_Halt:
+		{
 			return SlovingSC_Halt();
+			break;
+		}
 
 		case SC_Add:
+		{
 			return SlovingSC_Add();
+			break;
+		}
 
 		case SC_Create:
+		{
 			return SlovingSC_Create();
+			break;
+		}
 
 		case SC_Open:
+		{
 			return SlovingSC_Open();
+			break;
+		}
 
 		case SC_Close:
+		{
 			return SlovingSC_Close();
+			break;
+		}
 
 		case SC_Read:
+		{
 			return SlovingSC_Read();
+			break;
+		}
 
 		case SC_Write:
+		{
 			return SlovingSC_Write();
+			break;
+		}
 
 		case SC_PrintString:
+		{
 			return SlovingSC_PrintString();
+			break;
+		}
 
 		case SC_PrintNumber:
+		{
 			return SlovingSC_PrintNumber();
+			break;
+		}
 
 		case SC_Seek:
+		{
 			return SlovingSC_Seek();
+			break;
+		}
 
 		case SC_Remove:
+		{
 			return SlovingSC_Remove();
+			break;
+		}
 
 		case SC_SocketTCP:
+		{
 			return SlovingSC_SocketTCP();
+			break;
+		}
+
+		case SC_Connect:
+		{
+			return SlovingSC_Connect();
+			break;
+		}
 
 		case SC_ReadString:
+		{
 			return SlovingSC_ReadString();
+			break;
+		}
 
 		case SC_ReadNum:
+		{
 			return SlovingSC_ReadNum();
+			break;
+		}
 
 		default:
 			cerr << "Unexpected system callinggggggggggggg " << type << "\n";
 			break;
 		}
+		return;
 		break;
 	default:
 		cerr << "Unexpected user mode exception" << (int)which << "\n";
 		break;
 	}
-	// ASSERTNOTREACHED();
+	ASSERTNOTREACHED();
 }

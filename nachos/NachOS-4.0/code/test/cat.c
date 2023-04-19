@@ -9,9 +9,8 @@ int main()
     int i;
     char c;
 
-    PrintString("Source file name: ");
+    PrintString("source file name: ");
     ReadString(source, maxLength);
-    PrintString(source);
 
     sourceFileID = Open(source, 1);
     if (sourceFileID != -1)
@@ -28,13 +27,13 @@ int main()
             Read(c, 1, sourceFileID); // Doc tung ki tu cua file nguon
             PrintString(c);
         }
-        Close(sourceFileID);
+        PrintString("\n");
     }
     else
     {
-        PrintString("\nSource file does not exist");
+        PrintString("\n source file does not exist");
     }
 
-    PrintString("\n");
+    Close(sourceFileID);
     Halt();
 }

@@ -24,6 +24,8 @@
 #include "utility.h"
 #include "sysdep.h"
 
+#include <unistd.h> // close socket
+
 #ifdef FILESYS_STUB // Temporarily implement calls to
 					// Nachos file system as calls to UNIX!
 					// See definitions listed under #else
@@ -32,12 +34,25 @@ class OpenFile
 public:
 	char *filename;
 	int type;
+
+	int socket_desc;
+	int isSocket;
+	int isConnected;
 	OpenFile(int f)
 	{
 		file = f;
 		currentOffset = 0;
+
+		isSocket = 0;
+		isConnected = 0;
 	}							 // open the file
-	~OpenFile() { Close(file); } // close the file
+	~OpenFile() { 
+		if (filename != NULL) delete[] filename;
+		if (isSocket != 1) 
+			Close(file); 
+		else
+			close(socket_desc); 
+	} // close the file/socket
 
 	int ReadAt(char *into, int numBytes, int position)
 	{

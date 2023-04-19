@@ -37,6 +37,14 @@
 #include "sysdep.h"
 #include "openfile.h"
 
+//Socket
+#include <sys/socket.h>
+#include<stdio.h>
+#include<string.h>
+#include<arpa/inet.h>	//inet_addr
+#include <unistd.h> //close
+//---------------------------------
+
 #ifdef FILESYS_STUB // Temporarily implement file system calls as
 // calls to UNIX, until the real file system
 // implementation is available
@@ -45,8 +53,6 @@ class FileSystem
 public:
 	OpenFile **openTable;
 	int index;
-
-	OpenFile **SocketTable;
 
 	FileSystem()
 	{
@@ -62,21 +68,17 @@ public:
 		openTable[index++] = this->Open("stdout");
 		openTable[0]->filename = "stdin";
 		openTable[1]->filename = "stdout";
-
-		SocketTable = new OpenFile *[20];
-		index =0 ;
-		for (int i = 0; i < 20; i++)
-		{
-			SocketTable[i] = NULL;
-		}
 	}
 
 	~FileSystem()
 	{
 		for (int i = 0; i < 20; i++)
 		{
-			delete openTable[i]->filename;
-			delete openTable[i];
+			if (openTable[i] != NULL) {
+				if (openTable[i]->filename != NULL)
+					delete openTable[i]->filename;
+				delete openTable[i];
+			}
 		}
 	}
 
@@ -101,6 +103,49 @@ public:
 
 
 	bool Remove(char *name) { return Unlink(name) == 0; }
+
+	//Socket------------------------------------------------
+
+	int CreateSocket(){ 
+        int socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+        if (socket_desc != -1)
+            return socket_desc;
+        else
+            return -1;
+    }
+
+    int Connect(int socket_desc,char *ip, int port){
+        struct sockaddr_in server;
+        
+        server.sin_addr.s_addr = inet_addr(ip);
+        server.sin_family = AF_INET;
+        server.sin_port = htons(port);
+
+        if (ip == NULL || port < 0)
+            return -1;
+
+        if (connect(socket_desc, (struct sockaddr *)&server , sizeof(server)) < 0)
+        {
+            puts("\nconnect error");
+            return -1;
+        }
+        puts("\nConnected");
+	        return 0;
+    }
+	
+	int Send(int socket_desc,char* message, int size){
+		int state;
+		state = send(socket_desc, message, size, 0);
+		if (state > 0)
+			return state;
+		else
+			return -1; 
+	}
+
+	int Receive(int socket_desc, char* buffer, int size){
+		return recv(socket_desc, buffer , size , 0);
+	}
+
 };
 
 #else // FILESYS

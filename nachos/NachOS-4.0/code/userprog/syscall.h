@@ -191,7 +191,7 @@ void ReadString(char*buffer, int length);
 int ReadNum();
 
 /*--------  socket  --------*/
-void SocketTCP();
+int SocketTCP();
 
 int Connect(int socketid, char *ip, int port);
 
