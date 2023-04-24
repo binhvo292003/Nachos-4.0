@@ -19,6 +19,10 @@
 #include "filesys.h"
 #include "machine.h"
 
+#include "bitmap.h"
+#include "stable.h"
+#include "ptable.h"
+
 class PostOfficeInput;
 class PostOfficeOutput;
 class SynchConsoleInput;
@@ -59,13 +63,18 @@ public:
   PostOfficeInput *postOfficeIn;
   PostOfficeOutput *postOfficeOut;
 
+  Semaphore *addrLock;
+  Bitmap *gPhysPageBitMap;
+  STable *semTab;
+  PTable *pTab;
+
   int hostName; // machine identifier
   void PrintBuffer(char *buffer, int size);
   int Open(char *filename, int type);
   int Close(int id);
   void PrintNumber(int number);
   int Seek(int pos, int id);
-  char* ReadString(int size);
+  char *ReadString(int size);
   void ReadNum(int writeRegister);
   // char GetChar(){
   //   synchConsoleIn->
