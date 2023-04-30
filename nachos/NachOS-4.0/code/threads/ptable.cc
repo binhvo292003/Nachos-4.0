@@ -1,7 +1,5 @@
 #include "ptable.h"
-#include "main.h"
-#include "openfile.h"
-
+#include "synch.h"
 #define For(i, a, b) for (int i = (a); i < b; ++i)
 
 PTable::PTable(int size)
@@ -21,7 +19,6 @@ PTable::PTable(int size)
     bm->Mark(0);
 
     pcb[0] = new PCB(0);
-    // pcb[0]->SetFileName("../test/scheduler"); //1912447 here
     pcb[0]->parentID = -1;
 }
 
@@ -36,8 +33,7 @@ PTable::~PTable()
             delete pcb[i];
     }
 
-    if (bmsem != 0)
-        delete bmsem;
+    delete bmsem;
 }
 
 int PTable::ExecUpdate(char *name)
@@ -51,7 +47,7 @@ int PTable::ExecUpdate(char *name)
     // Kiểm tra sự tồn tại của chương trình “name” bằng cách gọi phương thức Open của lớp fileSystem.
     if (name == NULL)
     {
-        printf("\nPTable::Exec : Can't not execute name is NULL.\n");
+        printf("\nptable::Exec : Can't not execute name is NULL.\n");
         bmsem->V();
         return -1;
     }
@@ -131,7 +127,7 @@ int PTable::ExitUpdate(int exitcode)
     int id = kernel->currentThread->processID;
     if (id == 0)
     {
-        kernel->currentThread->FreeSpace();
+        delete kernel->currentThread;
         kernel->interrupt->Halt();
         return 0;
     }

@@ -1,52 +1,45 @@
-// pcb.h 
-// lớp này dùng để lưu thông tin quá đó giúp quản lý process
-
 #ifndef PCB_H
 #define PCB_H
-
+#pragma once
 #include "thread.h"
-#include "synch.h"
+class Semaphore;
 
-// Process Control Block
-class PCB
-{
-private:
-    Semaphore* joinsem;         // join semaphore
-    Semaphore* exitsem;         // exit semaphore 
-    Semaphore* multex;          // multex semaphore
+class PCB {
+   private:
+    Semaphore *joinsem;
+    Semaphore *exitsem;
+    Semaphore *multex;
 
-    int exitcode;		
-    int numwait;                // số tiến trình đợi
+    int exitcode;
+    int numwait;
 
-    char fileName[32];          
+    Thread *thread;
+    char filename[128];
 
-    Thread* thread;             
-public:
-    int parentID;                
-    char boolBG;                // Kiểm tra nếu đây là tiến trình nền
-    
+   public:
+    int parentID;
+    int processID;
     PCB();
-    PCB(int id);               
-    ~PCB();                     
+    PCB(int id);
+    ~PCB();
 
-    int Exec(char* filename,int pid);        // Tạo tiến trình mới (thread)
-    int GetID();                // Trả về ProcessID của tiến trình gọi thực hiện
-    int GetNumWait();           // Trả về số lượng tiến trình chờ
+    int Exec(char *filename, int pid);
+    int GetID();
+    int GetNumWait();
 
+    void JoinWait();
+    void ExitWait();
+    void JoinRelease();
+    void ExitRelease();
 
-    void JoinWait();            // Tiến trình cha đợi tiến trình con kết thúc                       
-    void ExitWait();             // Tiến trình con kết thúc
-    void JoinRelease();         // Báo cho tiến trình cha thực thi tiếp
-    void ExitRelease();         // Cho phép tiến trình con kết thúc
+    void IncNumWait();
+    void DecNumWait();
 
-    void IncNumWait();          // Tăng số tiến trình chờ
-    void DecNumWait();          // Giảm số tiến trình chờ
+    void SetExitCode(int ec);
+    int GetExitCode();
 
-    void SetExitCode(int exitCode);      // Đặt exitcode của tiến trình
-    int GetExitCode();          // Trả về exitcode
-
-    void SetFileName(char* filename);    // Set ten tien trinh
-    char* GetFileName();        // Tra ve ten tien trinh
+    void SetFileName(char *fn);
+    char *GetFileName();
 };
 
-#endif // PCB_H
+#endif

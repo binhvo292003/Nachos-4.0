@@ -3,20 +3,10 @@
 
 PCB::PCB(int id)
 {
-    if (id == 0)
-    {
-        this->parentID = -1;
-    }
-    else
-    {
-        this->parentID = kernel->currentThread->processID;
-    }
-    this->numwait = this->exitcode = this->boolBG = 0;
-    this->thread = NULL;
-
-    this->joinsem = new Semaphore("joinsem", 0);
-    this->exitsem = new Semaphore("exitsem", 0);
-    this->multex = new Semaphore("multex", 1);
+    this->processID = kernel->currentThread->processID;
+    joinsem = new Semaphore("joinsem", 0);
+    exitsem = new Semaphore("exitsem", 0);
+    multex = new Semaphore("multex", 1);
 }
 
 PCB::~PCB()
@@ -27,12 +17,11 @@ PCB::~PCB()
 
     if (thread)
     {
-        thread->FreeSpace();
         thread->Finish();
-        // delete thread;
+        delete thread;
     }
 
-    delete[] fileName;
+    delete[] filename;
 }
 
 void StartProcess_2(void *pid)
@@ -40,24 +29,19 @@ void StartProcess_2(void *pid)
     int id;
     id = *((int *)pid);
     // Lay fileName cua process id nay
-    char *fileName = kernel->pTab->GetFileName(id);
+    //char *fileName = kernel->pTab->GetFileName(id);
 
-    AddrSpace *space;
-    space = new AddrSpace(fileName);
+    //AddrSpace *space;
+    //space = new AddrSpace(fileName);
 
-    if (space == NULL)
-    {
-        printf("\nPCB::Exec: Can't create AddSpace.");
-        return;
-    }
+    // if (space == NULL)
+    // {
+    //     printf("\nPCB::Exec: Can't create AddSpace.");
+    //     return;
+    // }
 
-    space->Execute();
-    // kernel->currentThread->space = space;
+    // space->Execute();
 
-    // space->InitRegisters();	// set the initial register values
-    // space->RestoreState();	// load page table register
-
-    // kernel->machine->Run();	// jump to the user progam
     ASSERT(FALSE); // machine->Run never returns;
                    // the address space exits
                    // by doing the syscall "exit"
@@ -89,7 +73,7 @@ int PCB::Exec(char *filename, int id)
     this->thread->Fork(StartProcess_2, &this->thread->processID);
 
     multex->V();
-    // Trả về id.
+    
     return id;
 }
 
@@ -138,14 +122,22 @@ void PCB::DecNumWait()
     multex->V();
 }
 
-void PCB::SetExitCode(int ec) { exitcode = ec; }
+void PCB::SetExitCode(int ec)
+{
+    exitcode = ec;
+}
 
-int PCB::GetExitCode() { return exitcode; }
+int PCB::GetExitCode()
+{
+    return exitcode;
+}
 
-void PCB::SetFileName(char *fn) { strcpy(fileName, fn); }
+void PCB::SetFileName(char *fn)
+{
+    strcpy(filename, fn);
+}
 
 char *PCB::GetFileName()
 {
-    // cerr << "get file name" << ' ' << filename << endl;
-    return fileName;
+    return filename;
 }

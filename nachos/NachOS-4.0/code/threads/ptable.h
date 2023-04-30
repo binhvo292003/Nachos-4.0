@@ -1,8 +1,10 @@
+#pragma once
 #ifndef PTABLE_H
 #define PTABLE_H
-
-#include "bitmap.h"
 #include "pcb.h"
+#include "bitmap.h"
+class Semaphore;
+
 
 #define MAX_PROCESS 10
 
@@ -15,6 +17,7 @@ private:
     Semaphore *bmsem;
 
 public:
+    PTable();
     PTable(int size);
     ~PTable();
     int ExecUpdate(char *name);
