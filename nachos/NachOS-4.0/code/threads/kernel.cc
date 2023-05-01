@@ -128,6 +128,7 @@ void Kernel::Initialize()
     gPhysPageBitMap = new Bitmap(128);
     pTab = new PTable(MAX_PROCESS);
 
+
     interrupt->Enable();
 }
 

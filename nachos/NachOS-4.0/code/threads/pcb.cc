@@ -29,18 +29,18 @@ void StartProcess_2(void *pid)
     int id;
     id = *((int *)pid);
     // Lay fileName cua process id nay
-    //char *fileName = kernel->pTab->GetFileName(id);
+    char *fileName = kernel->pTab->GetFileName(id);
 
-    //AddrSpace *space;
-    //space = new AddrSpace(fileName);
+    AddrSpace *space;
+    space = new AddrSpace(fileName);
 
-    // if (space == NULL)
-    // {
-    //     printf("\nPCB::Exec: Can't create AddSpace.");
-    //     return;
-    // }
+    if (space == NULL)
+    {
+        printf("\nPCB::Exec: Can't create AddSpace.");
+        return;
+    }
 
-    // space->Execute();
+    space->Execute();
 
     ASSERT(FALSE); // machine->Run never returns;
                    // the address space exits
@@ -69,7 +69,7 @@ int PCB::Exec(char *filename, int id)
 
     // Không được sử dụng biến id ở đây, vì biến id là biến cục bộ,
     // nên khi hàm này kết thúc thì giá trị của biến này cũng bị xóa
-    // Đừng hỏi tôi đã mất bao lâu để nhận ra điều này :)
+
     this->thread->Fork(StartProcess_2, &this->thread->processID);
 
     multex->V();

@@ -44,6 +44,10 @@
 #define SC_SocketTCP 60
 #define SC_Connect 61
 
+#define SC_CreateSemaphore 70
+#define SC_Wait 71
+#define SC_Signal 72
+
 
 #ifndef IN_ASM
 
@@ -194,6 +198,14 @@ int ReadNum();
 int SocketTCP();
 
 int Connect(int socketid, char *ip, int port);
+
+/*--- project 2---*/
+int CreateSemaphore(char* name, int semval);
+
+int Wait(char* name);
+
+int Signal(char* name);
+
 
 #endif /* IN_ASM */
 

@@ -495,6 +495,92 @@ void SlovingSC_Connect()
 	return;
 }
 
+void SlovingSC_Exec() {
+    int virtAddr;
+    virtAddr = kernel->machine->ReadRegister(4);  // doc dia chi ten chuong trinh tu thanh ghi r4
+    char* name;
+    name = User2System(virtAddr,32);  // Lay ten chuong trinh, nap vao kernel
+    if (name == NULL) {
+        DEBUG(dbgSys, "\n Not enough memory in System");
+        ASSERT(false);
+        kernel->machine->WriteRegister(2, -1);
+        return ProgramCounter();
+    }
+
+    kernel->machine->WriteRegister(2, SysExec(name));
+    // DO NOT DELETE NAME, THE THEARD WILL DELETE IT LATER
+    // delete[] name;
+
+    return ProgramCounter();
+}
+
+
+void SlovingSC_Join() {
+    int id = kernel->machine->ReadRegister(4);
+    kernel->machine->WriteRegister(2, SysJoin(id));
+    return ProgramCounter();
+}
+
+
+void SlovingSC_Exit() {
+    int id = kernel->machine->ReadRegister(4);
+    kernel->machine->WriteRegister(2, SysExit(id));
+    return ProgramCounter();
+}
+
+void SlovingSC_CreateSemaphore() {
+    int virtAddr = kernel->machine->ReadRegister(4);
+    int semval = kernel->machine->ReadRegister(5);
+
+    char* name = User2System(virtAddr,32);
+    if (name == NULL) {
+        DEBUG(dbgSys, "\n Not enough memory in System");
+        ASSERT(false);
+        kernel->machine->WriteRegister(2, -1);
+        delete[] name;
+        return ProgramCounter();
+    }
+
+    kernel->machine->WriteRegister(2, SysCreateSemaphore(name, semval));
+    delete[] name;
+    return ProgramCounter();
+}
+
+void SlovingSC_Wait() {
+    int virtAddr = kernel->machine->ReadRegister(4);
+
+    char* name = User2System(virtAddr,32);
+    if (name == NULL) {
+        DEBUG(dbgSys, "\n Not enough memory in System");
+        ASSERT(false);
+        kernel->machine->WriteRegister(2, -1);
+        delete[] name;
+        return ProgramCounter();
+    }
+
+    kernel->machine->WriteRegister(2, SysWait(name));
+    delete[] name;
+    return ProgramCounter();
+}
+
+void SlovingSC_Signal() {
+    int virtAddr = kernel->machine->ReadRegister(4);
+
+    char* name = User2System(virtAddr,32);
+    if (name == NULL) {
+        DEBUG(dbgSys, "\n Not enough memory in System");
+        ASSERT(false);
+        kernel->machine->WriteRegister(2, -1);
+        delete[] name;
+        return ProgramCounter();
+    }
+
+    kernel->machine->WriteRegister(2, SysSignal(name));
+    delete[] name;
+    return ProgramCounter();
+}
+
+
 void ExceptionHandler(ExceptionType which)
 {
 	int type = kernel->machine->ReadRegister(2);
@@ -503,6 +589,48 @@ void ExceptionHandler(ExceptionType which)
 
 	switch (which)
 	{
+	case PageFaultException:
+	{
+		cerr << "No valid translation found\n";
+		SysHalt();
+		break;
+	}
+	case ReadOnlyException:
+	{	
+		cerr << "Write attempt to read-only page detected\n";
+		SysHalt();
+		break;
+	}
+	case BusErrorException:
+	{
+		cerr << "Invalid physical address after translation\n";
+		SysHalt();
+		break;
+	}
+	case AddressErrorException:
+	{
+		cerr << "Invalid address space"
+			 << "\n";
+		SysHalt();
+		break;
+	}
+	case OverflowException:
+	{
+		cerr << "Arithmetic operators resulted in integer overflow\n";
+		SysHalt();
+		break;
+	}
+	case IllegalInstrException:
+	{
+		cerr << "Instruction not defined\n";
+		SysHalt();
+		break;
+	}
+	case NoException:
+	{
+		return;
+		break;
+	}
 	case SyscallException:
 		switch (type)
 		{
@@ -593,6 +721,42 @@ void ExceptionHandler(ExceptionType which)
 		case SC_ReadNum:
 		{
 			return SlovingSC_ReadNum();
+			break;
+		}
+
+		case SC_Exec:
+		{
+			return SlovingSC_Exec();
+			break;
+		}
+
+		case SC_Join:
+		{
+			return SlovingSC_Join();
+			break;
+		}
+
+		case SC_Exit:
+		{
+			return SlovingSC_Exit();
+			break;
+		}
+
+		case SC_CreateSemaphore:
+		{
+			return SlovingSC_CreateSemaphore();
+			break;
+		}
+
+		case SC_Wait:
+		{
+			return SlovingSC_Wait();
+			break;
+		}
+
+		case SC_Signal:
+		{
+			return SlovingSC_Signal();
 			break;
 		}
 

@@ -18,10 +18,12 @@
 #include "alarm.h"
 #include "filesys.h"
 #include "machine.h"
-
+#include "synch.h"
+#include "sem.h"
 #include "pcb.h"
 #include "bitmap.h"
 #include "ptable.h"
+#include "stable.h"
 
 class PostOfficeInput;
 class PostOfficeOutput;
@@ -63,6 +65,7 @@ public:
   PostOfficeInput *postOfficeIn;
   PostOfficeOutput *postOfficeOut;
 
+  STable *semTab;
   PTable *pTab;
   Semaphore *addrLock;
   Bitmap *gPhysPageBitMap;
