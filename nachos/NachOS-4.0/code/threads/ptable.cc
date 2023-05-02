@@ -41,8 +41,9 @@ int PTable::ExecUpdate(char *name)
 
     DEBUG(dbgSys, "go to PTable::ExecuteUpdate");
     // Gọi mutex->P(); để giúp tránh tình trạng nạp 2 tiến trình cùng 1 lúc.
+    //cout<<name<<endl;
     bmsem->P();
-
+    //cout<<kernel->currentThread->getName();
     // Kiểm tra tính hợp lệ của chương trình “name”.
     // Kiểm tra sự tồn tại của chương trình “name” bằng cách gọi phương thức Open của lớp fileSystem.
     if (name == NULL)
@@ -62,7 +63,7 @@ int PTable::ExecUpdate(char *name)
 
     // Tìm slot trống trong bảng Ptable.
     int index = this->GetFreeSlot();
-
+    //cout<<index<<endl;
     // Check if have free slot
     if (index < 0)
     {

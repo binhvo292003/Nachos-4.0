@@ -30,7 +30,7 @@ void StartProcess_2(void *pid)
     id = *((int *)pid);
     // Lay fileName cua process id nay
     char *fileName = kernel->pTab->GetFileName(id);
-
+    cout<<kernel->pTab->GetFileName(id);
     AddrSpace *space;
     space = new AddrSpace(fileName);
 

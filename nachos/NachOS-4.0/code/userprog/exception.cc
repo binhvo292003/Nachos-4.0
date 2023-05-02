@@ -507,7 +507,9 @@ void SlovingSC_Exec() {
         return ProgramCounter();
     }
 
-    kernel->machine->WriteRegister(2, SysExec(name));
+	int id = SysExec(name);
+	//cout<<id<<endl;
+    kernel->machine->WriteRegister(2, id);
     // DO NOT DELETE NAME, THE THEARD WILL DELETE IT LATER
     // delete[] name;
 
@@ -608,7 +610,7 @@ void ExceptionHandler(ExceptionType which)
 		break;
 	}
 	case AddressErrorException:
-	{
+	{ 
 		cerr << "Invalid address space"
 			 << "\n";
 		SysHalt();
