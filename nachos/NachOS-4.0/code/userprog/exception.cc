@@ -584,6 +584,26 @@ void SlovingSC_Signal() {
     return ProgramCounter();
 }
 
+void SlovingSC_ExecV() {
+	int virtAddr;
+    virtAddr = kernel->machine->ReadRegister(4);  // doc dia chi ten chuong trinh tu thanh ghi r4
+    char** name;
+    name[0] = User2System(virtAddr,32);  // Lay ten chuong trinh, nap vao kernel
+    if (name == NULL) {
+        DEBUG(dbgSys, "\n Not enough memory in System");
+        ASSERT(false);
+        kernel->machine->WriteRegister(2, -1);
+        return ProgramCounter();
+    }
+
+	int id = SysExecV(0, name);
+	//cout<<id<<endl;
+    kernel->machine->WriteRegister(2, id);
+    // DO NOT DELETE NAME, THE THEARD WILL DELETE IT LATER
+    // delete[] name;
+
+    return ProgramCounter();
+}
 
 void ExceptionHandler(ExceptionType which)
 {
@@ -764,6 +784,11 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 
+		case SC_ExecV:
+		{
+			return SlovingSC_ExecV();
+			break;
+		}
 		default:
 			cerr << "Unexpected system callinggggggggggggg " << type << "\n";
 			break;

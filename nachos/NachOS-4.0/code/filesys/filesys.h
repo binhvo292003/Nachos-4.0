@@ -66,8 +66,10 @@ public:
 		this->Create("stdout", 0);
 		openTable[index++] = this->Open("stdin");
 		openTable[index++] = this->Open("stdout");
-		openTable[0]->filename = "stdin";
-		openTable[1]->filename = "stdout";
+		openTable[0]->filename = new char[128];
+		strcpy(openTable[0]->filename, "stdin");
+		openTable[1]->filename = new char[128];
+		strcpy(openTable[1]->filename, "stdout");
 	}
 
 	~FileSystem()
@@ -75,11 +77,17 @@ public:
 		for (int i = 0; i < 20; i++)
 		{
 			if (openTable[i] != NULL) {
-				if (openTable[i]->filename != NULL)
-					delete openTable[i]->filename;
+				// if (openTable[i]->filename != NULL)
+				// 	{
+				// 		delete openTable[i]->filename;
+				// 		openTable[i]->filename = NULL;
+				// 	}
+
 				delete openTable[i];
+				openTable[i] =NULL;
 			}
 		}
+		delete[] openTable;
 	}
 
 	bool Create(char *name, int size)

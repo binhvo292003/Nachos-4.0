@@ -80,6 +80,15 @@ int SysSignal(char* name) {
     return 0;
 }
 
+int SysExecV(int argc, char* argv[]) {
+    OpenFile* oFile = kernel->fileSystem->Open(argv[0]);
+    if (oFile == NULL) {
+        DEBUG(dbgSys, "\nExec: Can't open this file!!\n");
+        return -1;
+    }
+    
+    return kernel->pTab->ExecUpdate(argv[0]);
+}
 
 
 
