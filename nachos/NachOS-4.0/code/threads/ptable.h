@@ -13,7 +13,7 @@ class PTable
 private:
     Bitmap *bm;
     PCB *pcb[MAX_PROCESS];
-    int psize;
+    int psize;      //  So luong phan tu cua mang
     Semaphore *bmsem;
 
 public:

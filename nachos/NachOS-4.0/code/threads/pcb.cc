@@ -24,13 +24,13 @@ PCB::~PCB()
     delete[] filename;
 }
 
-void StartProcess_2(void *pid)
+// Khoi tao tien trinh moivoi pid truyen vao
+void StartProcess(void *pid)
 {
     int id;
     id = *((int *)pid);
     // Lay fileName cua process id nay
     char *fileName = kernel->pTab->GetFileName(id);
-    cout<<kernel->pTab->GetFileName(id);
     AddrSpace *space;
     space = new AddrSpace(fileName);
 
@@ -49,31 +49,26 @@ void StartProcess_2(void *pid)
 
 int PCB::Exec(char *filename, int id)
 {
-    // Gọi mutex->P(); để giúp tránh tình trạng nạp 2 tiến trình cùng 1 lúc.
+    // Goi multex de nap duy nhat 1 tien trinh tai 1 thoi diem
     multex->P();
 
     this->thread = new Thread(filename);
     if (this->thread == NULL)
     {
         printf("\nPCB::Exec: Not enough memory!\n");
-        multex->V(); // Nha CPU de nhuong CPU cho tien trinh khac
+        multex->V(); // Nhuong CPU cho tien trinh khac
         return -1;   // Tra ve -1 neu that bai
     }
 
-    //  Đặt processID của thread này là id.
+    //  Dat processID cua thread nay bang voi id truyen vao
     this->thread->processID = id;
-    // Đặt parrentID của thread này là processID của thread gọi thực thi Exec
+    //  Dat parentID la pid cua thread goi tien trinh nay
     this->parentID = kernel->currentThread->processID;
-    // Gọi thực thi Fork(StartProcess_2,id) => Ta cast thread thành kiểu int,
-    // sau đó khi xử ký hàm StartProcess ta cast Thread về đúng kiểu của nó.
 
-    // Không được sử dụng biến id ở đây, vì biến id là biến cục bộ,
-    // nên khi hàm này kết thúc thì giá trị của biến này cũng bị xóa
-
-    this->thread->Fork(StartProcess_2, &this->thread->processID);
-
+    // Khong dung bien id tai day vi id la bien cuc bo
+    this->thread->Fork(StartProcess, &this->thread->processID);
     multex->V();
-    
+
     return id;
 }
 
@@ -83,27 +78,23 @@ int PCB::GetNumWait() { return numwait; }
 
 void PCB::JoinWait()
 {
-    // Gọi joinsem->P() để tiến trình chuyển sang trạng thái block và ngừng lại,
-    // chờ JoinRelease để thực hiện tiếp.
+    // Goi joinsem->P() de dung lai
     joinsem->P();
 }
 
 void PCB::ExitWait()
 {
-    // Gọi exitsem-->V() để tiến trình chuyển sang trạng thái block và ngừng
-    // lại, chờ ExitReleaseđể thực hiện tiếp.
     exitsem->P();
 }
 
 void PCB::JoinRelease()
 {
-    // Gọi joinsem->V() để giải phóng tiến trình gọi JoinWait().
+    // Goi joinsem->V() giai phong tien trinh goi JoinWait().
     joinsem->V();
 }
 
 void PCB::ExitRelease()
 {
-    // Gọi exitsem->V() để giải phóng tiến trình đang chờ.
     exitsem->V();
 }
 

@@ -4,6 +4,6 @@
 int main(){
     int i;
     for(i = 0; i < 100; i++)
-        PrintString("Pong");
+        PrintString("Pung");
     Exit(2);
 }

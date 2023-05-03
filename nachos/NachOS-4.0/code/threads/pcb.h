@@ -6,9 +6,9 @@ class Semaphore;
 
 class PCB {
    private:
-    Semaphore *joinsem;
-    Semaphore *exitsem;
-    Semaphore *multex;
+    Semaphore *joinsem; //  Dung de dong bo viec thuc thi va dung lai cua 1 tien trinh  
+    Semaphore *exitsem; //  Ket thuc tien trinh va giai phong tai nguyen
+    Semaphore *multex;  //  Dong bo viec su dung chung tai nguyen giua nhieu tien trinh
 
     int exitcode;
     int numwait;

@@ -497,9 +497,12 @@ void SlovingSC_Connect()
 
 void SlovingSC_Exec() {
     int virtAddr;
-    virtAddr = kernel->machine->ReadRegister(4);  // doc dia chi ten chuong trinh tu thanh ghi r4
+	// Doc dia chi tu cua file thuc thi tu thanh ghi r4
+    virtAddr = kernel->machine->ReadRegister(4);  
     char* name;
-    name = User2System(virtAddr,32);  // Lay ten chuong trinh, nap vao kernel
+	// Lay ten chuong trinh, nap vao system de xu li
+    name = User2System(virtAddr,32);  
+	// Kiem tra bo nho cua he thong co du dung luong khong 
     if (name == NULL) {
         DEBUG(dbgSys, "\n Not enough memory in System");
         ASSERT(false);
@@ -507,11 +510,10 @@ void SlovingSC_Exec() {
         return ProgramCounter();
     }
 
+	// nap ten dia chi vao kernel de xu li
 	int id = SysExec(name);
 	//cout<<id<<endl;
     kernel->machine->WriteRegister(2, id);
-    // DO NOT DELETE NAME, THE THEARD WILL DELETE IT LATER
-    // delete[] name;
 
     return ProgramCounter();
 }

@@ -7,8 +7,8 @@
 
 class STable {
    private:
-    Bitmap* bm;
-    Sem* semTab[MAX_SEMAPHORE];
+    Bitmap* bm;     // Luu vet tien trinh
+    Sem* semTab[MAX_SEMAPHORE];     // Bang luu cac sem de thuc hien cho viec dong bo
 
    public:
     STable();

@@ -64,19 +64,19 @@ SwapHeader(NoffHeader *noffH)
 
 AddrSpace::AddrSpace()
 {
-    pageTable = new TranslationEntry[NumPhysPages];
-    for (int i = 0; i < NumPhysPages; i++)
-    {
-        pageTable[i].virtualPage = i; // for now, virt page # = phys page #
-        pageTable[i].physicalPage = i;
-        pageTable[i].valid = TRUE;
-        pageTable[i].use = FALSE;
-        pageTable[i].dirty = FALSE;
-        pageTable[i].readOnly = FALSE;
-    }
+    // pageTable = new TranslationEntry[NumPhysPages];
+    // for (int i = 0; i < NumPhysPages; i++)
+    // {
+    //     pageTable[i].virtualPage = i; // for now, virt page # = phys page #
+    //     pageTable[i].physicalPage = i;
+    //     pageTable[i].valid = TRUE;
+    //     pageTable[i].use = FALSE;
+    //     pageTable[i].dirty = FALSE;
+    //     pageTable[i].readOnly = FALSE;
+    // }
 
-    // zero out the entire address space
-    bzero(kernel->machine->mainMemory, MemorySize);
+    // // zero out the entire address space
+    // bzero(kernel->machine->mainMemory, MemorySize);
 }
 
 // Load
@@ -109,13 +109,9 @@ AddrSpace::AddrSpace(char *fileName)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT(numPages <= NumPhysPages);  // check we're not trying
-                                       // to run anything too big --
-                                       // at least until we have
-                                       // virtual memory
+    cout<<"\n\nFile name: "<<fileName;
+    printf("\nSize: %d | numPages: %d | PageSize: %d | Numclear: %d\n\n", size, numPages, PageSize, kernel->gPhysPageBitMap->NumClear());  
 
-    // Check the available memory enough to load new process
-    // debug
     if (numPages > kernel->gPhysPageBitMap->NumClear()) {
         cout<<"Not enough free space";
         numPages = 0;
@@ -157,7 +153,7 @@ AddrSpace::AddrSpace(char *fileName)
                 PageSize, noffH.initData.inFileAddr + (i * PageSize));
     }
 
-   // kernel->addrLock->V();
+    kernel->addrLock->V();
     delete executable;
     return;
 }

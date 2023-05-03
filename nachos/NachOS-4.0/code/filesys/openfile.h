@@ -41,6 +41,7 @@ public:
 	OpenFile(int f)
 	{
 		file = f;
+		filename = NULL;
 		currentOffset = 0;
 
 		isSocket = 0;

@@ -28,17 +28,15 @@ int SysAdd(int op1, int op2)
 }
 
 int SysExec(char* name) {
-    // cerr << "call: `" << name  << "`"<< endl;
     OpenFile* oFile = kernel->fileSystem->Open(name);
+    
+    // Kiem tra xem file co ton tai khong
     if (oFile == NULL) {
         DEBUG(dbgSys, "\nExec:: Can't open this file.");
-        delete oFile;
         return -1;
     }
 
-    delete oFile;
-
-    // Return child process id
+    // Tra ve processID cua chuong trinh nap vao
     return kernel->pTab->ExecUpdate(name);
 }
 
