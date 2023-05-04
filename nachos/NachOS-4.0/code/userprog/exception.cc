@@ -71,6 +71,25 @@ char *User2System(int virtAddr, int limit)
 	return kernelBuf;
 }
 
+char **User2System2(int virtAddr, int argc, int limit)
+{
+	int i;
+	int oneChar;
+	char **kernelBuf = new char*[argc+1];
+
+	for (i = 0; i < argc; i++)
+	{
+		
+		int argi;
+		kernel->machine->ReadMem(virtAddr + i * 4, 4, &argi);
+		kernelBuf[i] = new char[limit];
+
+		kernelBuf[i] = User2System(argi,128);
+	}
+
+	return kernelBuf;
+}
+
 int System2User(int virtAddr, int len, char *buffer)
 {
 	if (len < 0)
@@ -584,25 +603,41 @@ void SlovingSC_Signal() {
     return ProgramCounter();
 }
 
+int copyin(int from, int numBytes, char *to)
+{
+	int i, j, result;
+
+	for (i = 0, j = from; i < numBytes; i++, j++)
+	{
+		result = kernel->machine->ReadMem(j, 1, (int *)&to[i]);
+		if (!result)
+		{
+			return EFAULT;
+		}
+	}
+	return 0;
+}
+
 void SlovingSC_ExecV() {
-	int virtAddr;
-    virtAddr = kernel->machine->ReadRegister(4);  // doc dia chi ten chuong trinh tu thanh ghi r4
-    char** name;
-    name[0] = User2System(virtAddr,32);  // Lay ten chuong trinh, nap vao kernel
-    if (name == NULL) {
-        DEBUG(dbgSys, "\n Not enough memory in System");
-        ASSERT(false);
-        kernel->machine->WriteRegister(2, -1);
-        return ProgramCounter();
-    }
+	int argc1 = kernel->machine->ReadRegister(4); // number of arg
+	int argv1 = kernel->machine->ReadRegister(5); // arg arr
+	char* temp = User2System(argc1,200);
+	int numberArg = argc1;
 
-	int id = SysExecV(0, name);
-	//cout<<id<<endl;
-    kernel->machine->WriteRegister(2, id);
-    // DO NOT DELETE NAME, THE THEARD WILL DELETE IT LATER
-    // delete[] name;
+	cout<<"\n------------------------------------\n";
+	cout<<argv1<<endl;
+	
+	char ** argv= User2System2(argv1,numberArg,128);
+	char*program=argv[0];
+	int result = SysExecV(program, argv);
 
-    return ProgramCounter();
+	for (int i = 0; i < numberArg; i++)
+	{
+		delete[] argv[i];
+	}
+
+	kernel->machine->WriteRegister(2, result);
+	return ProgramCounter();
 }
 
 void ExceptionHandler(ExceptionType which)
@@ -778,7 +813,7 @@ void ExceptionHandler(ExceptionType which)
 			break;
 		}
 
-		case SC_Signal:
+		case SC_Signal:	
 		{
 			return SlovingSC_Signal();
 			break;
