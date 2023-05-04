@@ -9,7 +9,7 @@ class Sem {
     char name[50];
 
    public:
-    Sem(char* na, int i);
+    Sem(char* nameInit, int i);
     ~Sem();
 
     void wait();
